@@ -77,12 +77,13 @@ public class DangNhapActitivy extends AppCompatActivity {
                             MessageDangNhap messageDangNhap = response.body();
                             Log.d("-------", response.body().toString());
                             if (messageDangNhap.getCode() == 200) {
-                                Toast.makeText(DangNhapActitivy.this, "Dang nhap thanh cong", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(DangNhapActitivy.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(DangNhapActitivy.this,HomeActivity.class));
                             } else {
-                                Toast.makeText(DangNhapActitivy.this, "Sai tk mk", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(DangNhapActitivy.this, "Sai thông tin đăng nhập", Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            Toast.makeText(DangNhapActitivy.this, "Sai thong tin dang nhap", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(DangNhapActitivy.this, "Sai thông tin đăng nhập", Toast.LENGTH_SHORT).show();
                         }
 
 
@@ -99,7 +100,7 @@ public class DangNhapActitivy extends AppCompatActivity {
 
     private boolean CheckInput(String tentk, String mk) {
         if (tentk.isEmpty() || mk.isEmpty()){
-            Toast.makeText(this, "Chua nhap thông tin", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Bạn chưa nhập thông tin", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;

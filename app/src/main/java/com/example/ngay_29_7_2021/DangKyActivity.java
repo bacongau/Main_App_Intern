@@ -3,6 +3,7 @@ package com.example.ngay_29_7_2021;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,6 +42,17 @@ public class DangKyActivity extends AppCompatActivity {
 
         clickDangKy();
 
+        clickDangNhap();
+
+    }
+
+    private void clickDangNhap() {
+        tv_dangnhapngay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(DangKyActivity.this,DangNhapActitivy.class));
+            }
+        });
     }
 
     private void clickDangKy() {
@@ -63,16 +75,18 @@ public class DangKyActivity extends AppCompatActivity {
 
                 Customer customer = new Customer(hoten, diachi, sdt);
 
-//                String strRequestBody = "body";
-//                RequestBody requestBody = RequestBody.create(MediaType.parse("text/plain"), strRequestBody);
-
                 ApiService.apiService.dangKyCustomer(encodedString, customer).enqueue(new Callback<MessageDangKy>() {
                     @Override
                     public void onResponse(Call<MessageDangKy> call, Response<MessageDangKy> response) {
                         if (response.code() == 200){
+                            Toast.makeText(DangKyActivity.this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
                             Log.d("---------","Đăng ký thành công");
+                            startActivity(new Intent(DangKyActivity.this,DangNhapActitivy.class));
                         }else if (response.code() == 409){
+                            Toast.makeText(DangKyActivity.this, "Tài khoản đã có người dùng", Toast.LENGTH_SHORT).show();
                             Log.d("---------","Tài khoản đã có người dùng");
+                        }else {
+                            Toast.makeText(DangKyActivity.this, "Đã có lỗi, hãy thử lại", Toast.LENGTH_SHORT).show();
                         }
                     }
 
