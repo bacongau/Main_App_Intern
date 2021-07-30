@@ -17,10 +17,17 @@ import com.example.ngay_29_7_2021.API.ApiService;
 import com.example.ngay_29_7_2021.model.Customer;
 import com.example.ngay_29_7_2021.model.MessageDangNhap;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.Base64;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -60,47 +67,36 @@ public class DangNhapActitivy extends AppCompatActivity {
                 String tentk = edt_tentk.getText().toString().trim();
                 String mk = edt_mk.getText().toString().trim();
                 String str = tentk + ":" + mk;
-                if (!CheckInput(tentk,mk)){
+                if (!CheckInput(tentk, mk)) {
                     return;
                 }
-                String encodedString = Base64.getEncoder().encodeToString(str.getBytes());
+                String str2 = Base64.getEncoder().encodeToString(str.getBytes());
+                String encodedString = "Basic " + str2;
 
-                Customer customer = new Customer("", "", "");
-
-                String strRequestBody = encodedString;
+                String strRequestBody = "body";
                 RequestBody requestBody = RequestBody.create(MediaType.parse("text/plain"), strRequestBody);
 
-                ApiService.apiService.dangNhapCustomer(encodedString, requestBody).enqueue(new Callback<MessageDangNhap>() {
-                    @Override
-                    public void onResponse(Call<MessageDangNhap> call, Response<MessageDangNhap> response) {
-                        if (response.isSuccessful() && response != null) {
-                            MessageDangNhap messageDangNhap = response.body();
-                            Log.d("-------", response.body().toString());
-                            if (messageDangNhap.getCode() == 200) {
-                                Toast.makeText(DangNhapActitivy.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(DangNhapActitivy.this,HomeActivity.class));
-                            } else {
-                                Toast.makeText(DangNhapActitivy.this, "Sai thông tin đăng nhập", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(DangNhapActitivy.this, "Sai thông tin đăng nhập", Toast.LENGTH_SHORT).show();
-                        }
-
-
-                    }
-
-                    @Override
-                    public void onFailure(Call<MessageDangNhap> call, Throwable t) {
-
-                    }
-                });
+                Observable<ResponseBody> observable = ApiService.apiService.dangNhapCustomer(encodedString, requestBody);
+                observable.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .map(result -> result)
+                        .subscribe(
+                                responseBody -> {
+                                    Toast.makeText(DangNhapActitivy.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(DangNhapActitivy.this, HomeActivity.class));
+                                },
+                                throwable -> {
+                                    Log.v("myLog", "err " + throwable.getLocalizedMessage());
+                                    Toast.makeText(DangNhapActitivy.this, "Không tìm thấy tài khoản", Toast.LENGTH_SHORT).show();
+                                }
+                        );
             }
         });
     }
 
     private boolean CheckInput(String tentk, String mk) {
-        if (tentk.isEmpty() || mk.isEmpty()){
-            Toast.makeText(this, "Bạn chưa nhập thông tin", Toast.LENGTH_SHORT).show();
+        if (tentk.isEmpty() || mk.isEmpty() || mk.length() < 6) {
+            Toast.makeText(this, "Bạn chưa nhập thông tin" + "\nMật khẩu phải có ít nhất 6 ký tự", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;

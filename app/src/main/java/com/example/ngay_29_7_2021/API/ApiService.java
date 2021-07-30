@@ -10,6 +10,8 @@ import com.google.gson.GsonBuilder;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
@@ -42,18 +44,19 @@ public interface ApiService {
     ApiService apiService = new Retrofit.Builder()
             .baseUrl("https://4e06c5bd3878.ngrok.io/")
             .addConverterFactory(GsonConverterFactory.create(gson))
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .client(client)
             .build()
             .create(ApiService.class);
 
 
     @POST("api/auths/customer/login")
-    Call<MessageDangNhap> dangNhapCustomer(@Header("Authorization") String encodedString,@Body RequestBody requestBody);
+    Observable<ResponseBody> dangNhapCustomer(@Header("Authorization") String encodedString,@Body RequestBody requestBody);
 
 //    @POST("api/auths/customer/login")
 //    Single<ResponseBody> dangNhapCustomer(@Body RequestBody requestBody);
 
     @POST("api/auths/customers/register")
-    Call<MessageDangKy> dangKyCustomer(@Header("Authorization") String encodedString, @Body Customer customer);
+    Observable<ResponseBody> dangKyCustomer(@Header("Authorization") String encodedString, @Body Customer customer);
 
 }

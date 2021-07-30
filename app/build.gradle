@@ -42,6 +42,7 @@ dependencies {
 
     implementation "io.reactivex.rxjava3:rxjava:3.0.13"
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    implementation "com.github.akarnokd:rxjava3-retrofit-adapter:3.0.0"
 
     implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
 }
