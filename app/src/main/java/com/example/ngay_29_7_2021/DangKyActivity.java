@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ngay_29_7_2021.API.ApiClient;
 import com.example.ngay_29_7_2021.API.ApiService;
 import com.example.ngay_29_7_2021.model.Customer;
 import com.example.ngay_29_7_2021.model.MessageDangKy;
@@ -22,6 +23,9 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -75,26 +79,28 @@ public class DangKyActivity extends AppCompatActivity {
 
                 Customer customer = new Customer(hoten, diachi, sdt);
 
-                ApiService.apiService.dangKyCustomer(encodedString, customer).enqueue(new Callback<MessageDangKy>() {
-                    @Override
-                    public void onResponse(Call<MessageDangKy> call, Response<MessageDangKy> response) {
-                        if (response.code() == 200){
-                            Toast.makeText(DangKyActivity.this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
-                            Log.d("---------","Đăng ký thành công");
-                            startActivity(new Intent(DangKyActivity.this,DangNhapActitivy.class));
-                        }else if (response.code() == 409){
-                            Toast.makeText(DangKyActivity.this, "Tài khoản đã có người dùng", Toast.LENGTH_SHORT).show();
-                            Log.d("---------","Tài khoản đã có người dùng");
-                        }else {
-                            Toast.makeText(DangKyActivity.this, "Đã có lỗi, hãy thử lại", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+                // rxjava
+                Observable<MessageDangKy> observable = ApiClient.getClient(DangKyActivity.this).dangKyCustomer(encodedString, customer);
+                observable.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .map(result -> result)
+                        .subscribe(
+                                response -> {
+                                    Log.v("myLog", "Call api thành công ");
+                                    if (response.getCode() == 200) {
+                                        Toast.makeText(DangKyActivity.this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
+                                        Log.v("myLog", "Đăng ký thành công ");
+                                        startActivity(new Intent(DangKyActivity.this, DangNhapActitivy.class));
+                                    } else if (response.getCode() == 409) {
+                                        Toast.makeText(DangKyActivity.this, "Tài khoản đã có người dùng", Toast.LENGTH_SHORT).show();
+                                    }
+                                },
+                                throwable -> {
+                                    Log.v("myLog", "err " + throwable.getMessage());
+                                    Toast.makeText(DangKyActivity.this, "Tài khoản đã có người dùng", Toast.LENGTH_SHORT).show();
+                                }
+                        );
 
-                    @Override
-                    public void onFailure(Call<MessageDangKy> call, Throwable t) {
-                        Log.d("---------", t + "");
-                    }
-                });
 
             }
         });
@@ -102,8 +108,8 @@ public class DangKyActivity extends AppCompatActivity {
     }
 
     private boolean checkInput(String tentk, String mk, String hoten, String diachi, String sdt) {
-        if (tentk.isEmpty() || mk.isEmpty() || hoten.isEmpty() || diachi.isEmpty() || sdt.isEmpty()) {
-            Toast.makeText(this, "Không được để trống dữ liệu", Toast.LENGTH_SHORT).show();
+        if (tentk.isEmpty() || mk.isEmpty() || mk.length()<6 || hoten.isEmpty() || diachi.isEmpty() || sdt.isEmpty()) {
+            Toast.makeText(this, "Không được để trống dữ liệu" + "\nMật khẩu phải lớn hơn 6 ký tự", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
