@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/wall"
-    tools:context=".DangNhapActitivy">
+    tools:context=".MainActitivy">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
             android:layout_marginTop="24dp"
             android:layout_marginEnd="32dp"
             android:ems="10"
-            android:inputType="text"
+            android:inputType="textPassword"
             android:hint="Mật khẩu"
             android:background="@drawable/custom_edittext_1"
             app:layout_constraintEnd_toEndOf="parent"
@@ -60,12 +60,12 @@
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:text="Bạn chưa có tài khoản?"
             android:textColor="@color/black"
             app:layout_constraintEnd_toEndOf="@+id/btn_dangnhap"
             app:layout_constraintStart_toStartOf="@+id/btn_dangnhap"
-            app:layout_constraintTop_toBottomOf="@+id/btn_dangnhap" />
+            app:layout_constraintTop_toBottomOf="@+id/checkBox_remember_dangnhap" />
 
         <TextView
             android:id="@+id/tv_dangky"
@@ -102,6 +102,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <CheckBox
+            android:id="@+id/checkBox_remember_dangnhap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="32dp"
+            android:text="Nhớ đăng nhập"
+            app:layout_constraintEnd_toEndOf="@+id/btn_dangnhap"
+            app:layout_constraintTop_toBottomOf="@+id/btn_dangnhap" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
