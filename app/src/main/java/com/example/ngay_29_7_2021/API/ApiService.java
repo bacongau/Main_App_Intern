@@ -20,6 +20,7 @@ import retrofit2.http.POST;
 public interface ApiService {
     // link api dang nhap: https://63d759a008b0.ngrok.io/api/auths/customer/login
     // link api dang ky: https://63d759a008b0.ngrok.io/api/auths/customers/register
+    public static String BASE_URL = "https://29e3b863a81d.ngrok.io/";
 
     OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -32,7 +33,7 @@ public interface ApiService {
             .create();
 
     ApiService apiService = new Retrofit.Builder()
-            .baseUrl("https://4e06c5bd3878.ngrok.io/")
+            .baseUrl(BASE_URL)  // .baseUrl("https://4e06c5bd3878.ngrok.io/")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .client(client)

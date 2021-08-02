@@ -10,16 +10,22 @@ import com.example.ngay_29_7_2021.fragments.DangKyFragment;
 import com.example.ngay_29_7_2021.fragments.DangNhapFragment;
 import com.example.ngay_29_7_2021.fragments.HomeFragment;
 
+import io.realm.Realm;
+
 public class MainActitivy extends AppCompatActivity {
     FragmentManager fragmentManager;
     public DangNhapFragment dangNhapFragment;
     public DangKyFragment dangKyFragment;
     public HomeFragment homeFragment;
 
+    public Realm realm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main1);
+
+        realm = Realm.getDefaultInstance();
 
         homeFragment = new HomeFragment();
         dangNhapFragment = new DangNhapFragment();

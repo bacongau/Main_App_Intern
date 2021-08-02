@@ -26,14 +26,18 @@ import android.widget.Toast;
 import com.example.ngay_29_7_2021.API.ApiService;
 import com.example.ngay_29_7_2021.MainActitivy;
 import com.example.ngay_29_7_2021.R;
+import com.example.ngay_29_7_2021.model.CustomerRealm;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Base64;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.realm.Realm;
+import io.realm.RealmResults;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -45,10 +49,10 @@ import okhttp3.ResponseBody;
  */
 public class DangNhapFragment extends Fragment {
     EditText edt_tentk, edt_mk;
-    Button btn_dangnhap;
+    Button btn_dangnhap, btn_dangnhap_realm;
     TextView tv_dangky;
     View view;
-    CheckBox cb_remmember;
+    CheckBox cb_remember, cb_remember_realm;
 
     SharedPreferences sharedPreferences;
 
@@ -107,12 +111,58 @@ public class DangNhapFragment extends Fragment {
         anhxa();
 
         layDuLieuDangNhapTuSharedPreferences();
+        layDuLieuDangNhapTuRealmDB();
+
         clickDangNhap();
         clickDangky();
+        clickDangNhapRealm();
 
         return view;
     }
 
+    private void clickDangNhapRealm() {
+        btn_dangnhap_realm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String tentk = edt_tentk.getText().toString().trim();
+                String mk = edt_mk.getText().toString().trim();
+                String str = tentk + ":" + mk;
+                if (!CheckInput(tentk, mk)) {
+                    return;
+                }
+
+                String str2 = null;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    str2 = Base64.getEncoder().encodeToString(str.getBytes());
+                }
+                String encodedString = "Basic " + str2;
+
+                String strRequestBody = "body";
+                RequestBody requestBody = RequestBody.create(MediaType.parse("text/plain"), strRequestBody);
+
+                // rxjava
+                Observable<ResponseBody> observable = ApiService.apiService.dangNhapCustomer(encodedString, requestBody);
+                observable.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .map(result -> result)
+                        .subscribe(
+                                responseBody -> {
+                                    Toast.makeText(mMainActivity, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                                    fragmentManager.beginTransaction()
+                                            .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
+                                            .replace(R.id.fragment_container, mMainActivity.homeFragment)
+                                            .addToBackStack(null)
+                                            .commit();
+                                    luuDangNhapVaoRealmDatabase(tentk, mk);
+                                },
+                                throwable -> {
+                                    Log.v("myLog", "err " + throwable.getLocalizedMessage());
+                                    Toast.makeText(mMainActivity, "Thông tin không chính xác", Toast.LENGTH_SHORT).show();
+                                }
+                        );
+            }
+        });
+    }
 
     private void clickDangNhap() {
         btn_dangnhap.setOnClickListener(new View.OnClickListener() {
@@ -131,51 +181,148 @@ public class DangNhapFragment extends Fragment {
                 String strRequestBody = "body";
                 RequestBody requestBody = RequestBody.create(MediaType.parse("text/plain"), strRequestBody);
 
-//                // rxjava
-//                Observable<ResponseBody> observable = ApiService.apiService.dangNhapCustomer(encodedString, requestBody);
-//                observable.subscribeOn(Schedulers.io())
-//                        .observeOn(AndroidSchedulers.mainThread())
-//                        .map(result -> result)
-//                        .subscribe(
-//                                responseBody -> {
-//                                    Toast.makeText(mMainActivity, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
-//                                    fragmentManager.beginTransaction()
-//                                            .setCustomAnimations(R.anim.enter_from_right,R.anim.exit_to_left,R.anim.enter_from_left,R.anim.exit_to_right)
-//                                            .replace(R.id.fragment_container,mMainActivity.homeFragment)
-//                                            .addToBackStack(null)
-//                                            .commit();
-//                                    luuDangNhapVaoSharedPreferences(tentk,mk);
-//                                },
-//                                throwable -> {
-//                                    Log.v("myLog", "err " + throwable.getLocalizedMessage());
-//                                    Toast.makeText(mMainActivity, "Thông tin không chính xác", Toast.LENGTH_SHORT).show();
-//                                }
-//                        );
-
-                if (tentk.equalsIgnoreCase("123") && mk.equalsIgnoreCase("111111")) {
-                    Toast.makeText(mMainActivity, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
-                    fragmentManager.beginTransaction()
-                            .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
-                            .replace(R.id.fragment_container, mMainActivity.homeFragment)
-                            .addToBackStack(null)
-                            .commit();
-                    luuDangNhapVaoSharedPreferences(tentk, mk);
-                }
+                // rxjava
+                Observable<ResponseBody> observable = ApiService.apiService.dangNhapCustomer(encodedString, requestBody);
+                observable.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .map(result -> result)
+                        .subscribe(
+                                responseBody -> {
+                                    Toast.makeText(mMainActivity, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                                    fragmentManager.beginTransaction()
+                                            .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
+                                            .replace(R.id.fragment_container, mMainActivity.homeFragment)
+                                            .addToBackStack(null)
+                                            .commit();
+                                    luuDangNhapVaoSharedPreferences(tentk, mk);
+                                },
+                                throwable -> {
+                                    Log.v("myLog", "err " + throwable.getLocalizedMessage());
+                                    Toast.makeText(mMainActivity, "Thông tin không chính xác", Toast.LENGTH_SHORT).show();
+                                }
+                        );
             }
         });
+    }
+
+    private void luuDangNhapVaoRealmDatabase(String tentk, String mk) {
+        if (cb_remember_realm.isChecked()) {
+            // realm database
+
+            CustomerRealm customerRealm = new CustomerRealm();
+
+            Number id = mMainActivity.realm.where(CustomerRealm.class).max("id");
+
+            int nextId;
+            if (id == null) {
+                nextId = 1;
+            } else {
+                nextId = id.intValue() + 1;
+            }
+
+            customerRealm.setId(nextId);
+            customerRealm.setTentk(tentk);
+            customerRealm.setMatkhau(mk);
+            customerRealm.setGhinho(true);
+
+            mMainActivity.realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm bgrealm) {
+                    bgrealm.copyToRealm(customerRealm);
+                }
+            }, new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                    Toast.makeText(mMainActivity, "Lưu vào realm thành công", Toast.LENGTH_SHORT).show();
+                }
+            }, new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                    Toast.makeText(mMainActivity, "Lưu vào realm thất bại", Toast.LENGTH_SHORT).show();
+                    Log.d("err", "" + error);
+                }
+            });
+        } else {
+            // xoa data
+            mMainActivity.realm.beginTransaction();
+            mMainActivity.realm.deleteAll();
+            mMainActivity.realm.commitTransaction();
+        }
+    }
+
+    private void luuDangNhapVaoSharedPreferences(String tentk, String mk) {
+        if (cb_remember.isChecked()) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("Login_tentaikhoan", tentk);
+            editor.putString("Login_matkhau", mk);
+            editor.putBoolean("Login_nhodangnhap", true);
+            editor.apply();
+        } else {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove("Login_tentaikhoan");
+            editor.remove("Login_matkhau");
+            editor.remove("Login_nhodangnhap");
+            editor.apply();
+        }
+    }
+
+    private void layDuLieuDangNhapTuRealmDB() {
+        if (!cb_remember.isChecked()) {
+            ArrayList<CustomerRealm> arrayList = new ArrayList<>();
+            RealmResults<CustomerRealm> userRealmRealmResults = mMainActivity.realm.where(CustomerRealm.class).findAll();
+            for (CustomerRealm customerRealm : userRealmRealmResults) {
+                arrayList.add(customerRealm);
+            }
+            if (arrayList.size() > 0) {
+                if (!cb_remember.isChecked()) {
+                    cb_remember_realm.setChecked(arrayList.get(0).isGhinho());
+                    edt_tentk.setText(arrayList.get(0).getTentk());
+                    edt_mk.setText(arrayList.get(0).getMatkhau());
+
+
+                    // Vào màn hình Home nếu đã lưu thông tin đăng nhập
+                    String tentaikhoan = edt_tentk.getText().toString();
+                    String matkhau = edt_mk.getText().toString();
+                    if (!tentaikhoan.equals("") && !matkhau.equals("") && checkFirstTime[0] == 1) {
+                        CountDownTimer countDownTimer = new CountDownTimer(1000, 1000) {
+                            @Override
+                            public void onTick(long millisUntilFinished) {
+
+                            }
+
+                            @Override
+                            public void onFinish() {
+                                fragmentManager.beginTransaction()
+                                        .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
+                                        .replace(R.id.fragment_container, mMainActivity.homeFragment)
+                                        .addToBackStack(null)
+                                        .commit();
+                                checkFirstTime[0] = 2;
+                            }
+                        };
+
+                        countDownTimer.start();
+                    }
+                }
+            } else {
+                edt_tentk.setText("");
+                edt_mk.setText("");
+                cb_remember_realm.setChecked(false);
+            }
+        }
     }
 
     private void layDuLieuDangNhapTuSharedPreferences() {
         // Lấy thông tin đăng nhập và gán lên các edittext.
         edt_tentk.setText(sharedPreferences.getString("Login_tentaikhoan", ""));
         edt_mk.setText(sharedPreferences.getString("Login_matkhau", ""));
-        cb_remmember.setChecked(sharedPreferences.getBoolean("Login_nhodangnhap", false));
+        cb_remember.setChecked(sharedPreferences.getBoolean("Login_nhodangnhap", false));
 
         // Vào màn hình Home nếu đã lưu thông tin đăng nhập
         String tentaikhoan = edt_tentk.getText().toString();
         String matkhau = edt_mk.getText().toString();
         if (!tentaikhoan.equals("") && !matkhau.equals("") && checkFirstTime[0] == 1) {
-            CountDownTimer countDownTimer = new CountDownTimer(500, 500) {
+            CountDownTimer countDownTimer = new CountDownTimer(1000, 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
 
@@ -193,27 +340,11 @@ public class DangNhapFragment extends Fragment {
             };
 
             countDownTimer.start();
-
         }
+
     }
 
-    private void luuDangNhapVaoSharedPreferences(String tentk, String mk) {
-        if (cb_remmember.isChecked()) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("Login_tentaikhoan", tentk);
-            editor.putString("Login_matkhau", mk);
-            editor.putBoolean("Login_nhodangnhap", true);
-            editor.apply();
-        } else {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.remove("Login_tentaikhoan");
-            editor.remove("Login_matkhau");
-            editor.remove("Login_nhodangnhap");
-            editor.apply();
-        }
-    }
-
-    private void taoEncryptChoSharedPreferences(){
+    private void taoEncryptChoSharedPreferences() {
         try {
             String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
 
@@ -257,8 +388,10 @@ public class DangNhapFragment extends Fragment {
         edt_tentk = view.findViewById(R.id.edt_dn_tentk);
         edt_mk = view.findViewById(R.id.edt_dn_mk);
         btn_dangnhap = view.findViewById(R.id.btn_dangnhap);
+        btn_dangnhap_realm = view.findViewById(R.id.btn_dangnhap_realm);
         tv_dangky = view.findViewById(R.id.tv_dangky);
-        cb_remmember = view.findViewById(R.id.checkBox_remember_dangnhap);
+        cb_remember = view.findViewById(R.id.checkBox_remember_dangnhap);
+        cb_remember_realm = view.findViewById(R.id.checkBox_remember_dangnhap_realm);
 
         // tạo Encrypt cho SharedPreferences
         taoEncryptChoSharedPreferences();
